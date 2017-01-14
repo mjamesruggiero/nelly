@@ -1,6 +1,13 @@
 #lang racket
 
-(require 2hdtp/image 2htdp/universe)
+#|
+  The Snake game
+  The snake game revolves around a room filled with pieces
+  of radioactive goo, and a snake that can remove the goo.
+|#
+
+(require 2htdp/image)
+(require 2htdp/universe)
 
 (struct pit (snake goos) #:transparent)
 
@@ -8,7 +15,7 @@
 
 (struct goo (loc expire) #:transparent)
 
-(struct post (x y) #:transparent)
+(struct posn (x y) #:transparent)
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;      constants
@@ -27,7 +34,7 @@
 (define WIDTH-PX (* SEG-SIZE 30))
 (define HEIGHT-PX (* SEG-SIZE 30))
 
-(define MT-SCENE (empty scene WIDTH-PX HEIGHT-PX))
+(define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
 (define GOO-IMG (bitmap "graphics/goo.gif"))
 (define SEG-IMG (bitmap "graphics/body.gif"))
 (define HEAD-IMG (bitmap "graphics/head.gif"))
@@ -44,7 +51,7 @@
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (define (start-snake)
-  (big-bang (pit (snake "right" (list posn 1 1))
+  (big-bang (pit (snake "right" (list (posn 1 1)))
                  (list (fresh-goo)
                   (fresh-goo)
                   (fresh-goo)
@@ -73,6 +80,10 @@
   (snake+scene (pit-snake w))
   (or (self-colliding? snake) (wall-colliding? snake)))
 
+(define (dead? w)
+  (define snake (pit-snake w))
+  (or (self-colliding? snake) (wall-colliding? snake)))
+
 (define (render-end w)
   (overlay (text "Game Over" ENDGAME-TEXT-SIZE "black")
            (render-pit w)))
@@ -91,7 +102,7 @@
   (cons (fresh-goo) (remove goo-to-eat goos)))
 
 (define (close? s g)
-  (osn=? s (goo-loc g)))
+  (posn=? s (goo-loc g)))
 
 (define (grow sn)
   (snake (snake-dir sn) (cons (next-head sn) (snake-segs sn))))
@@ -105,7 +116,7 @@
          (cons (next-head sn) (all-but-last (snake-segs sn)))))
 
 (define (next-head sn)
-  (define deahd (snake-head sn))
+  (define head (snake-head sn))
   (define dir (snake-dir sn))
   (cond [(string=? dir "up") (posn-move head 0 -1)]
         [(string=? dir "down") (posn-move head 0 1)]
@@ -113,7 +124,7 @@
         [(string=? dir "right") (posn-move head 1 0)]))
 
 (define (posn-move p dx dy)
-  (pon (+ (posn-x p) dx)
+  (posn (+ (posn-x p) dx)
        (+ (posn-y p) dy)))
 
 (define (all-but-last segs)
@@ -157,7 +168,7 @@
 ;;      keys
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(define dir? x
+(define (dir? x)
   (or (string=? x "up")
       (string=? x "down")
       (string=? x "left")
@@ -175,10 +186,10 @@
 
 ;; are d1 and d2 opposites?
 (define (opposite-dir? d1 d2)
-  (cond [(string=? dl "up")    (string=? "down")]
-        [(string=? dl "down")  (string=? "up")]
-        [(string=? dl "left")  (string=? "right")]
-        [(string=? dl "right") (string=? "left")]))
+  (cond [(string=? d1 "up")    (string=? d2 "down")]
+        [(string=? d1 "down")  (string=? d2 "up")]
+        [(string=? d1 "left")  (string=? d2 "right")]
+        [(string=? d1 "right") (string=? d2 "left")]))
 
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,3 +229,33 @@
                (* (posn-x posn) SEG-SIZE)
                (* (posn-y posn) SEG-SIZE)
                scene))
+
+(define (self-colliding? sn)
+  (cons? (member (snake-head sn) (snake-body sn))))
+
+(define (wall-colliding? sn)
+  (define x (posn-x (snake-head sn)))
+  (define y (posn-y (snake-head sn)))
+  (or (= 0 x) (= x SIZE)
+      (= 0 y) (= y SIZE)))
+
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~
+;;      utils
+;;~~~~~~~~~~~~~~~~~~~~~~~~~
+; are the two posns equal?
+(define (posn=? p1 p2)
+  (and (= (posn-x p1)) (posn-x p2)
+       (= (posn-y p1) (posn-y p2))))
+
+;; get the snake's head
+(define (snake-head sn)
+  (first (snake-segs sn)))
+
+;; get the snake's body
+(define (snake-body sn)
+  (rest (snake-segs sn)))
+
+;; snake direction
+(define (snake-change-dir sn d)
+  (snake d (snake-segs sn)))
