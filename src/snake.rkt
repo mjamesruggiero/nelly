@@ -1,14 +1,13 @@
 #lang racket
 
 #|
-  The Snake game
-  The snake game revolves around a room filled with pieces
-  of radioactive goo, and a snake that can remove the goo.
+ The Snake game
+ The snake game revolves around a room filled with pieces
+of radioactive goo, and a snake that can remove the goo.
 |#
 
 (require 2htdp/image)
 (require 2htdp/universe)
-
 (struct pit (snake goos) #:transparent)
 
 (struct snake (dir segs) #:transparent)
@@ -77,8 +76,8 @@
         [else w]))
 
 (define (render-pit w)
-  (snake+scene (pit-snake w))
-  (or (self-colliding? snake) (wall-colliding? snake)))
+  (snake+scene (pit-snake w)
+               (goo-list+scene (pit-goos w) MT-SCENE)))
 
 (define (dead? w)
   (define snake (pit-snake w))
@@ -245,7 +244,7 @@
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~
 ; are the two posns equal?
 (define (posn=? p1 p2)
-  (and (= (posn-x p1)) (posn-x p2)
+  (and (= (posn-x p1) (posn-x p2))
        (= (posn-y p1) (posn-y p2))))
 
 ;; get the snake's head
