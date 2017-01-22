@@ -120,3 +120,19 @@
             (to-draw render-orc-battle)
             (stop-when end-of-orc-battle? render-the-end)))
 
+(define (player-acts-on-monsters w k)
+  (cond
+    [(zero? (orc-world-attack# w)) w]
+    [(key=? "s" k) (stab w)]
+
+    [(key=? "h" k) (heal w)]
+    [(key=? "f" k) (flail w)]
+    [(key=? "right" k) (move-target w +1)]
+    [(key=? "left" k) (move-target w -1)]
+    [(key=? "down" k) (move-targe w (+ PER-ROW))]
+    [(key=? "up" k) (move-targe w (- PER-ROW))]
+    [(key=? "e" k) (end-turn w)]
+    [else w])
+  (give-monster-turn-if-attack#=0 w)
+  w)
+
