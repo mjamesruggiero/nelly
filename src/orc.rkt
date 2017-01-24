@@ -44,7 +44,7 @@
 (unless (zero? (remainder MONSTER# PER-ROW))
   (error 'constraing "PER-ROW must divide MONSTER# evenly into rows"))
 
-(define MONSTER-HEALTH 9)
+(define MONSTER-HEALTH0 9)
 (define CLUB-STRENGTH 8)
 (define SLIMINESS 5)
 
@@ -135,4 +135,115 @@
     [else w])
   (give-monster-turn-if-attack#=0 w)
   w)
+
+(define (render-orc-battle w)
+  (render-orc-world w (orc-world-target w) (instructions w)))
+
+(define (end-of-orc-battle? w)
+  (or (win? w) (lose? w)))
+
+(define (render-the end w)
+  (render-orc-world w #f (message (if (lose? w) LOSE WIN))))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       world management
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (initialize-player)
+  (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH))
+
+(define (initialize-monsters)
+  (define (create-monster _)
+    (define health (random+ MONSTER-HEALTH0))
+    (case (random 4)
+      [(0) (orc ORC-IMAGE health (random+ CLUB-STRENGTH))]
+      [(1) (hydra HYDRA-IMAGE health)]
+      [(2) (slime SLIME-IMAGE health (random+ SLIMINESS))]
+      [(3) (brigand BRIGAND-IMAGE health)]
+      [else (error "can't happen")]))
+  (build-list MONSTER# create-monster))
+
+(define (random-number-of-attacks p)
+  (random-quotient (player-agility p)
+                   ATTACKS#))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       key events
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+;; reduces the target by a given amount
+(define (move-target w n)
+  (set-orc-world-target! w (modulo (+ n (orc-world-target w)) MONSTER#)))
+
+;; ends the player's turn by setting the number
+;; of attacks to zero
+(define (end-turn)
+  (set-orc-world-attack#! w 0))
+
+;; reduces the number of remaining attacks
+;; for this turn and increases the player's health level
+(define (heal w)
+  (decrease-attack# w)
+  (player-health+ (orc-world-player w) HEALING))
+
+;; reduces targeted monster's health
+(define (stab w)
+  (decrease-attack# w)
+  (define (target (current-target w)))
+  (define damage
+    (random-quotient (player-strength (orc-world-player w))
+                     STAB-DAMAGE))
+  (damage-monster target damage))
+
+;; damages a random number of live monsters
+;; determined by the strength of the player,
+;; starting with the currently targeted monster
+(define (flail w)
+  (decrease-attack# w)
+  (define target (current-target w))
+  (define pick#
+    (min
+     (random-quotient (player-strength (orc-world-player w))
+                      FLAIL-DAMAGE)
+     (length-alive)))
+  (define getem (cons target (take alive pick#)))
+  (for-each (lambda (m) (damage-monster m 1)) getem))
+
+;; decrease the number of remaining attacks
+(define (decrease-attack# w)
+  (set-orc-world-attack#! w (sub1 (orc-world-attack# w))))
+
+(define (damange-monster m delta)
+  (set-monster-health! m (interval- (monster-health m) delta)))
+
+(define (current-target w)
+  (list-ref (orc-world-lom w) (orc-world-target w)))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       monster
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (give-monster-turn-if-attack#=0 w)
+  (when (zero? (orc-world-attack# w))
+    (define player (orc-world-player w))
+    (all-monsters-attack-player player (orc-world-lom w))
+    (set-orc-world-attack#! w (random-number-of-attacks player))))
+
+
+(define (all-monsters-attack-player player lom)
+  (define (one-monster-attacks-player monster)
+    (cond
+      [(orc? monster)
+       (player-health+ player (random- (orc-club monster)))]
+      [(hydra? monster)
+       (player-health+ player (random- monster-health monster))]
+      [(slime? monster)
+       (player-health+ player -1)
+       (player-agility+ player (random- (slime-sliminess monster)))]
+      [(brigand? monster)
+       (case (random 3)
+         [(0) (player-health+ player HEALTH-DAMAGE)]
+         [(1) (player-agility+ player AGILITY-DAMAGE)]
+         [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
+  (for-each one-monster-attacks-player (filter monster-alive? lom)))
 
