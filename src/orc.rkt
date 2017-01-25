@@ -229,7 +229,6 @@
     (all-monsters-attack-player player (orc-world-lom w))
     (set-orc-world-attack#! w (random-number-of-attacks player))))
 
-
 (define (all-monsters-attack-player player lom)
   (define (one-monster-attacks-player monster)
     (cond
@@ -247,3 +246,58 @@
          [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
   (for-each one-monster-attacks-player (filter monster-alive? lom)))
 
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       player
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (player-update! setter selector max-value)
+  (lambda (player delta)
+    (setter player
+            (interval+ (selector player) delta max-value))))
+
+(define player-health+
+  (player-update! set-player-health! player-health MAX-HEALTH))
+
+(define player-agility+
+  (player-update! set-player-agility! player-agility MAX-AGILITY))
+
+(define player-strength+
+  (player-update! set-player-strength! player-strength MAX-STRENGTH))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       rendering
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (render-orc-world w with-target additional-text)
+  (define i-player (render-player (orc-world-player w)))
+  (define i-monster (render-monsters (orc-world-lom w) with-target))
+  (above V-SPACER
+         (beside H-SPACER
+                 i-player
+                 H-SPACER H-SPACER H-SPACER
+                 (above i-monster
+                        V-SPACER V-SPACER V-SPACER
+                        additional-text)
+                 H-SPACER)
+         V-SPACER))
+
+(define (render-player p)
+  (above/align
+   "left"
+   (status-bar (player-strength p) MAX-STRENGTH STRENGTH-COLOR STRENGTH)
+   V-SPACER
+   (status-bar (player-agility p) MAX-STRENGTH AGILITY-COLOR AGILITY)
+   V-SPACER
+   (status-bar (player-health p) MAX-HEALTH HEALTH-COLOR HEALTH)
+   V-SPACER V-SPACER V-SPACER
+   PLAYER-IMAGE))
+
+(define (status-bar v-current v-max color label)
+  (define w (* (/ v-current v-max) HEALTH-BAR-WIDTH))
+  (define f (rectangle w HEALTH-BAR-HEIGHT 'solid color))
+  (define b (rectangle HEALTH-BAR-WIDTH HEALTH-BAR-HEIGHT 'outline color))
+  (define bar (overlay/align 'left 'top f b))
+  (beside bar H-SPACER (text label HEALTH-SIZE color)))
+
+(define (message str)
+  (text str MESSAGES-SIZE MESSAGE-COLOR))
