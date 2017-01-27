@@ -301,3 +301,31 @@
 
 (define (message str)
   (text str MESSAGES-SIZE MESSAGE-COLOR))
+
+(define (instructions w)
+  (define na (number->string (orc-world-attack# w)))
+  (define ra (string-append REMAINING na))
+  (above (text ra INSTRUCTION-TEXT-SIZE ATTACK-COLOR) INSTRUCTION-TEXT))
+
+(define (render-monsters lom with-target)
+  (define target
+    (if (number? with-target)
+        (list-ref lom with-target)
+        'a-silly-symbol-that-cannot-be-eq-to-an-orc))
+  (define (render-one-monster m)
+    (define image
+      (if (eq? m target)
+          (overlay TARGET (monster-image m))
+          (monster-image m)))
+    (define health (monster-health m))
+    (define health-bar
+      (if (= health 0)
+          (overlay DEAD-TEXT (status-bar 0 1 'white ""))
+          (status-bar health MONSTER-HEALTH0 MONSTER-COLOR "")))
+    (above health-bar image)))
+
+(define (arrange lom)
+  (cond
+    [(empty? lom) empty-image]
+    [else (define row-image (apply beside (take lom PER-ROW)))
+          (above row-image (arrange (drop lom PER-ROW)))]))
