@@ -1,0 +1,8 @@
+Installation-wide:
+ Package      Checksum                                  Source
+ csv-reading  217c1ee293ee246cba52fc91f2e897492d0b5101  catalog csv-reading
+ drracket     922c6d6271d4c555609035396cb021ddd9af4c21  catalog drracket
+ racket-lib   21b7fee99c95a8d7f0f4d51deb91be6f3cdd6d6a  catalog racket-lib
+ [108 auto-installed packages not shown]
+User-specific for installation "6.6":
+ [none]
