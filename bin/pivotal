@@ -39,17 +39,25 @@
 ;;         command-line
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(define (runner args)
+  (let* ([token (vector-ref args 0)]
+         [project-id (vector-ref args 1)]
+         [file-path (vector-ref args 2)])
+
+    (printf "~a ~a\n" token project-id)
+
+    (fetch-iteration
+     (pivotal-url project-id)
+     file-path
+     (pivotal-header token))))
+
+(define (usage)
+  (printf "Arguments needed: <token> <project-id> <destination-file>\n"))
+
 (define (main)
-  (define args (current-command-line-arguments))
-  (define token (vector-ref args 0))
-  (define project-id (vector-ref args 1))
-  (define file-path (vector-ref args 2))
-
-  (printf "~a ~a\n" token project-id)
-
-  (fetch-iteration
-   (pivotal-url project-id)
-   file-path
-   (pivotal-header token)))
+  (define cli-args (current-command-line-arguments))
+  (if (> 3 (vector-length cli-args))
+      (usage)
+      (runner cli-args)))
 
 (main)
