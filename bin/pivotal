@@ -1,0 +1,55 @@
+#! /usr/bin/env racket
+#lang racket
+
+(require net/url racket/port)
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         url handling
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define PIVOTAL-URI
+  "https://www.pivotaltracker.com/services/v5/projects")
+
+(define ITERATION-PATH
+  "/iterations?scope=current")
+
+(define (pivotal-url project-id)
+  (define url-string
+    (string-append PIVOTAL-URI "/" project-id ITERATION-PATH))
+  (println url-string)
+  (string->url  url-string))
+
+(define (pivotal-header token)
+  (list (string-append "X-TrackerToken:" token)))
+
+(define (fetch url header)
+  (define in (get-pure-port url header))
+  (define out (open-output-string))
+  (copy-port in out)
+  (get-output-string out))
+
+(define (fetch-iteration url filename header)
+  (call-with-output-file filename
+    (lambda (out)
+      (write (fetch url header) out))
+    #:mode 'text
+    #:exists 'replace))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         command-line
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (main)
+  (define args (current-command-line-arguments))
+  (define token (vector-ref args 0))
+  (define project-id (vector-ref args 1))
+  (define file-path (vector-ref args 2))
+
+  (printf "~a ~a\n" token project-id)
+
+  (fetch-iteration
+   (pivotal-url project-id)
+   file-path
+   (pivotal-header token)))
+
+(main)
