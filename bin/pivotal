@@ -13,10 +13,18 @@
 (define ITERATION-PATH
   "/iterations?scope=current")
 
+(define MEMBERSHIPS-PATH
+  "/memberships")
+
 (define (pivotal-url project-id)
   (define url-string
     (string-append PIVOTAL-URI "/" project-id ITERATION-PATH))
   (println url-string)
+  (string->url  url-string))
+
+(define (members-url project-id)
+  (define url-string
+    (string-append PIVOTAL-URI "/" project-id MEMBERSHIPS-PATH))
   (string->url  url-string))
 
 (define (pivotal-header token)
@@ -28,13 +36,13 @@
   (copy-port in out)
   (get-output-string out))
 
-(define (call-iteration-api url header)
+(define (api-call url header)
   (fetch url header))
 
-(define (save-iteration-to-file url header filename)
+(define (api-call->file url header filename)
   (call-with-output-file filename
     (lambda (out)
-      (write (call-iteration-api url header) out))
+      (write (api-call url header) out))
     #:mode 'text
     #:exists 'replace))
 
@@ -44,6 +52,9 @@
 
 (struct story
   (name owned-by-id kind current-state) #:transparent)
+
+(struct user
+  (id name) #:transparent)
 
 (define (iteration-stories iteration)
   (hash-ref (car (string->jsexpr iteration)) 'stories))
@@ -58,6 +69,14 @@
 (define (extract-stories iteration)
   (map story-node->story (iteration-stories iteration)))
 
+(define (mk-user node)
+  (user (hash-ref node 'id)
+        (hash-ref node 'name)))
+
+(define (extract-users nodes)
+  (map (lambda (n)
+         (mk-user (hash-ref n 'person))) nodes))
+
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         command-line
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,7 +88,7 @@
 
     (printf "~a ~a\n" token project-id)
 
-    (save-iteration-to-file
+    (api-call->file
      (pivotal-url project-id)
      (pivotal-header token)
      file-path)))
