@@ -1,7 +1,7 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require net/url racket/port)
+(require net/url racket/port json)
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         url handling
@@ -28,12 +28,35 @@
   (copy-port in out)
   (get-output-string out))
 
-(define (fetch-iteration url filename header)
+(define (call-iteration-api url header)
+  (fetch url header))
+
+(define (save-iteration-to-file url header filename)
   (call-with-output-file filename
     (lambda (out)
-      (write (fetch url header) out))
+      (write (call-iteration-api url header) out))
     #:mode 'text
     #:exists 'replace))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         json
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(struct story
+  (name owned-by-id kind current-state) #:transparent)
+
+(define (iteration-stories iteration)
+  (hash-ref (car (string->jsexpr iteration)) 'stories))
+
+(define (story-node->story story-node)
+    (story
+     (hash-ref story-node 'name)
+     (hash-ref story-node 'owned_by_id)
+     (hash-ref story-node 'kind)
+     (hash-ref story-node 'current_state)))
+
+(define (extract-stories iteration)
+  (map story-node->story (iteration-stories iteration)))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         command-line
@@ -46,10 +69,10 @@
 
     (printf "~a ~a\n" token project-id)
 
-    (fetch-iteration
+    (save-iteration-to-file
      (pivotal-url project-id)
-     file-path
-     (pivotal-header token))))
+     (pivotal-header token)
+     file-path)))
 
 (define (usage)
   (printf "Arguments needed: <token> <project-id> <destination-file>\n"))
