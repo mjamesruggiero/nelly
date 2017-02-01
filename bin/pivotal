@@ -1,7 +1,10 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require net/url racket/port json)
+(require json
+         net/url
+         racket/list
+         racket/port)
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         url handling
@@ -51,31 +54,38 @@
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (struct story
-  (name owned-by-id kind current-state) #:transparent)
-
-(struct user
-  (id name) #:transparent)
+  (name owned-by-id kind current-state owner-name) #:transparent)
 
 (define (iteration-stories iteration)
   (hash-ref (car (string->jsexpr iteration)) 'stories))
 
-(define (story-node->story story-node)
+(define (story-node->story story-node users)
     (story
      (hash-ref story-node 'name)
      (hash-ref story-node 'owned_by_id)
      (hash-ref story-node 'kind)
-     (hash-ref story-node 'current_state)))
+     (hash-ref story-node 'current_state)
+     (hash-ref users (hash-ref story-node 'owned_by_id))))
 
-(define (extract-stories iteration)
-  (map story-node->story (iteration-stories iteration)))
-
-(define (mk-user node)
-  (user (hash-ref node 'id)
-        (hash-ref node 'name)))
+(define (extract-stories iteration memberships)
+  (let ([users (extract-users (string->jsexpr  memberships))])
+    (map (lambda [s]
+           (story-node->story s users))
+         (iteration-stories iteration))))
 
 (define (extract-users nodes)
-  (map (lambda (n)
-         (mk-user (hash-ref n 'person))) nodes))
+  (let ([m (make-hash)])
+    (for ([n nodes])
+      (let* ([person (hash-ref n 'person)]
+             [id (hash-ref person 'id)]
+             [name (hash-ref person 'name)])
+        (hash-set! m id name)))
+    m))
+
+(define (grouped stories)
+  (group-by (lambda (s)
+              (story-owner-name s))
+            stories))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         command-line
