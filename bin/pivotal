@@ -92,23 +92,27 @@
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (define (runner args)
-  (let* ([token (vector-ref args 0)]
-         [project-id (vector-ref args 1)]
-         [file-path (vector-ref args 2)])
-
-    (printf "~a ~a\n" token project-id)
-
-    (api-call->file
-     (pivotal-url project-id)
-     (pivotal-header token)
-     file-path)))
+  (let* ([token
+          (vector-ref args 0)]
+         [project-id
+          (vector-ref args 1)]
+         [iteration
+          (api-call
+           (pivotal-url project-id)
+           (pivotal-header token))]
+         [users
+          (api-call (members-url project-id)
+                    (pivotal-header token))]
+         [stories
+          (grouped (extract-stories iteration users))])
+    (print stories)))
 
 (define (usage)
-  (printf "Arguments needed: <token> <project-id> <destination-file>\n"))
+  (printf "Arguments needed: <token> <project-id>\n"))
 
 (define (main)
   (define cli-args (current-command-line-arguments))
-  (if (> 3 (vector-length cli-args))
+  (if (> 2 (vector-length cli-args))
       (usage)
       (runner cli-args)))
 
