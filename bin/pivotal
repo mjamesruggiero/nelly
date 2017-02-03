@@ -4,6 +4,7 @@
 (require json
          net/url
          racket/list
+         racket/format
          racket/port)
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,7 +23,6 @@
 (define (pivotal-url project-id)
   (define url-string
     (string-append PIVOTAL-URI "/" project-id ITERATION-PATH))
-  (println url-string)
   (string->url  url-string))
 
 (define (members-url project-id)
@@ -87,6 +87,17 @@
               (story-owner-name s))
             stories))
 
+(define (print-grouped grouped)
+  (let ([formatter
+         (lambda (story)
+           (~a (story-current-state story)
+               " - " (story-owner-name story)
+               " - " (story-name story)
+               #:max-width 90 #:limit-marker "..."))])
+    (for ([g grouped])
+      (for ([s g])
+        (printf "~a\n" (formatter s))))))
+
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         command-line
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,7 +116,7 @@
                     (pivotal-header token))]
          [stories
           (grouped (extract-stories iteration users))])
-    (print stories)))
+    (print-grouped stories)))
 
 (define (usage)
   (printf "Arguments needed: <token> <project-id>\n"))
