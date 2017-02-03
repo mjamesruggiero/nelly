@@ -116,7 +116,7 @@
          [iteration
           (api-call (pivotal-url project-id) header)]
          [users
-          (api-call (members-url project-id))]
+          (api-call (members-url project-id) header)]
          [stories
           (grouped (extract-stories iteration users))])
     (print-grouped stories)))
