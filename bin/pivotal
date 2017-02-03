@@ -1,11 +1,24 @@
 #! /usr/bin/env racket
 #lang racket
 
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         pivotal
+;;
+;; what it does: pulls the current iteration,
+;; echoes short story summary
+;; binned by the first owner's name
+;;
+;; arguments: API token and team project-id
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 (require json
          net/url
          racket/list
          racket/format
          racket/port)
+
+(define (usage)
+  (printf "Arguments needed: <token> <project-id>\n"))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;         api
@@ -48,13 +61,13 @@
 (define (iteration-stories iteration)
   (hash-ref (car (string->jsexpr iteration)) 'stories))
 
-(define (story-node->story story-node users)
+(define (story-node->story node users)
     (story
-     (hash-ref story-node 'name)
-     (hash-ref story-node 'owned_by_id)
-     (hash-ref story-node 'kind)
-     (hash-ref story-node 'current_state)
-     (hash-ref users (hash-ref story-node 'owned_by_id))))
+     (hash-ref node 'name)
+     (hash-ref node 'owned_by_id)
+     (hash-ref node 'kind)
+     (hash-ref node 'current_state)
+     (hash-ref users (hash-ref node 'owned_by_id))))
 
 (define (extract-stories iteration memberships)
   (let ([users (extract-users (string->jsexpr  memberships))])
@@ -77,19 +90,17 @@
             stories))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;;         files
+;;         output
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+;; TODO allow optional command line arg
+;; that allows you to write to local file
 (define (api->file url header filename)
   (call-with-output-file filename
     (λ (out)
       (write (api-call url header) out))
     #:mode 'text
     #:exists 'replace))
-
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;;         printing
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (define (print-grouped grouped)
   (let ([formatter
@@ -121,13 +132,11 @@
           (grouped (extract-stories iteration users))])
     (print-grouped stories)))
 
-(define (usage)
-  (printf "Arguments needed: <token> <project-id>\n"))
-
 (define (main)
-  (define cli-args (current-command-line-arguments))
-  (if (> 2 (vector-length cli-args))
-      (usage)
-      (runner cli-args)))
+  (let ([cli-args
+         (current-command-line-arguments)])
+        (if (> 2 (vector-length cli-args))
+            (usage)
+            (runner cli-args))))
 
 (main)
