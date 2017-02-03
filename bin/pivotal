@@ -58,7 +58,7 @@
 
 (define (extract-stories iteration memberships)
   (let ([users (extract-users (string->jsexpr  memberships))])
-    (map (lambda [s]
+    (map (λ [s]
            (story-node->story s users))
          (iteration-stories iteration))))
 
@@ -72,7 +72,7 @@
     m))
 
 (define (grouped stories)
-  (group-by (lambda (s)
+  (group-by (λ (s)
               (story-owner-name s))
             stories))
 
@@ -82,7 +82,7 @@
 
 (define (api->file url header filename)
   (call-with-output-file filename
-    (lambda (out)
+    (λ (out)
       (write (api-call url header) out))
     #:mode 'text
     #:exists 'replace))
@@ -93,7 +93,7 @@
 
 (define (print-grouped grouped)
   (let ([formatter
-         (lambda (story)
+         (λ (story)
            (~a (story-current-state story)
                " - " (story-owner-name story)
                " - " (story-name story)
