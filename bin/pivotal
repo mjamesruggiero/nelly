@@ -8,8 +8,11 @@
          racket/port)
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;;         url handling
+;;         api
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(struct story
+  (name owned-by-id kind current-state owner-name) #:transparent)
 
 (define PIVOTAL-URI
   "https://www.pivotaltracker.com/services/v5/projects")
@@ -42,20 +45,6 @@
 (define (api-call url header)
   (fetch url header))
 
-(define (api-call->file url header filename)
-  (call-with-output-file filename
-    (lambda (out)
-      (write (api-call url header) out))
-    #:mode 'text
-    #:exists 'replace))
-
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;;         json
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-(struct story
-  (name owned-by-id kind current-state owner-name) #:transparent)
-
 (define (iteration-stories iteration)
   (hash-ref (car (string->jsexpr iteration)) 'stories))
 
@@ -87,6 +76,21 @@
               (story-owner-name s))
             stories))
 
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         files
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (api->file url header filename)
+  (call-with-output-file filename
+    (lambda (out)
+      (write (api-call url header) out))
+    #:mode 'text
+    #:exists 'replace))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;         printing
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 (define (print-grouped grouped)
   (let ([formatter
          (lambda (story)
@@ -107,13 +111,12 @@
           (vector-ref args 0)]
          [project-id
           (vector-ref args 1)]
+         [header
+          (pivotal-header token)]
          [iteration
-          (api-call
-           (pivotal-url project-id)
-           (pivotal-header token))]
+          (api-call (pivotal-url project-id) header)]
          [users
-          (api-call (members-url project-id)
-                    (pivotal-header token))]
+          (api-call (members-url project-id))]
          [stories
           (grouped (extract-stories iteration users))])
     (print-grouped stories)))
