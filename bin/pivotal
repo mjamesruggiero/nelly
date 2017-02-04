@@ -39,12 +39,12 @@
 (define (pivotal-url project-id)
   (define url-string
     (string-append PIVOTAL-URI "/" project-id ITERATION-PATH))
-  (string->url  url-string))
+  (string->url url-string))
 
 (define (members-url project-id)
   (define url-string
     (string-append PIVOTAL-URI "/" project-id MEMBERSHIPS-PATH))
-  (string->url  url-string))
+  (string->url url-string))
 
 (define (pivotal-header token)
   (list (string-append "X-TrackerToken:" token)))
