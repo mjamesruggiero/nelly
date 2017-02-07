@@ -1,6 +1,7 @@
 #lang racket
 
-(require csv-reading)
+(require csv-reading
+         racket/match)
 
 (define usage
   (println "Arguments: <csv-file>"))
@@ -18,8 +19,9 @@
   (csv->list (csv-reader (open-input-file csv-filepath))))
 
 (define (print-rows rows)
-  (for ([r rows])
-    (println r)))
+  (let ([skpping-header (cdr rows)])
+    (for ([r skpping-header])
+      (println (row->browser-stat r)))))
 
 (define (runner args)
   (let* ([file-path
@@ -34,4 +36,12 @@
         (usage)
         (runner cli-args))))
 
-(main)
+(struct browser-stat
+  (browser total-requests cookies dsp-matched coverage-rate) #:transparent)
+
+(define (row->browser-stat row)
+  (let* ([browser (car row)]
+         [nums (map string->number (cdr row))])
+    (match nums
+      [(list req cookies matched rate)
+       (browser-stat browser req cookies matched rate)])))
