@@ -1,7 +1,9 @@
 #lang racket
 
 (require csv-reading
-         racket/match)
+         racket/match
+         plot
+         plot/no-gui)
 
 (define usage
   (println "Arguments: <csv-file>"))
@@ -16,7 +18,8 @@
   (csv-reader (open-input-file csv-filepath)))
 
 (define (rows csv-filepath)
-  (csv->list (csv-reader (open-input-file csv-filepath))))
+  (csv->list (csv-reader
+              (open-input-file csv-filepath))))
 
 (define (print-rows rows)
   (let ([skpping-header (cdr rows)])
@@ -37,7 +40,11 @@
         (runner cli-args))))
 
 (struct browser-stat
-  (browser total-requests cookies dsp-matched coverage-rate) #:transparent)
+  (browser
+   total-requests
+   cookies
+   dsp-matched
+   coverage-rate) #:transparent)
 
 (define (row->browser-stat row)
   (let* ([browser (car row)]
@@ -45,3 +52,20 @@
     (match nums
       [(list req cookies matched rate)
        (browser-stat browser req cookies matched rate)])))
+
+(define test-list
+  (list
+   #("08-Feb" 1)
+   #("07-Feb" 3)
+   #("06-Feb" 9)
+   #("05-Feb" 6)
+   #("04-Feb" 6)
+   #("03-Feb" 6)
+   #("02-Feb" 6)))
+
+(define time-series-bars (list label title)
+  (plot
+   (discrete-histogram list
+                       #:label "Fake values"
+                       #:color 2 #:line-color 2)
+   #:title title))
