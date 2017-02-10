@@ -2,11 +2,13 @@
 
 (require csv-reading
          racket/match
+         racket/file
          plot
          plot/no-gui)
 
-(define usage
-  (println "Arguments: <csv-file>"))
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;     csvs
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (define csv-reader
   (make-csv-reader-maker
@@ -26,19 +28,6 @@
     (for ([r skpping-header])
       (println (row->browser-stat r)))))
 
-(define (runner args)
-  (let* ([file-path
-          (vector-ref args 0)]
-         [rows (rows file-path)])
-    (print-rows rows)))
-
-(define (main)
-  (let ([cli-args
-         (current-command-line-arguments)])
-    (if (> 1 (vector-length cli-args))
-        (usage)
-        (runner cli-args))))
-
 (struct browser-stat
   (browser
    total-requests
@@ -53,19 +42,48 @@
       [(list req cookies matched rate)
        (browser-stat browser req cookies matched rate)])))
 
-(define test-list
-  (list
-   #("08-Feb" 1)
-   #("07-Feb" 3)
-   #("06-Feb" 9)
-   #("05-Feb" 6)
-   #("04-Feb" 6)
-   #("03-Feb" 6)
-   #("02-Feb" 6)))
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;     charts
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(define time-series-bars (list label title)
+(define (time-series-bars list label title)
   (plot
    (discrete-histogram list
-                       #:label "Fake values"
+                       #:label label
                        #:color 2 #:line-color 2)
    #:title title))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;     commands
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define usage
+  "Arguments: <csv-file>")
+
+(define (runner args)
+  (let* ([file-path
+          (vector-ref args 0)]
+         [conf (load-config file-path)])
+    (println conf)))
+
+(define (main)
+  (let ([cli-args
+         (current-command-line-arguments)])
+    (if (> 0 (vector-length cli-args))
+        (println (usage))
+        (runner cli-args))))
+
+(define (load-config config-path)
+  (let [(eval-ns  (make-base-namespace))
+        (params   (make-hash))]
+    (let [(settings (file->list config-path))]
+      (for [(name:value settings)]
+        (let* [; extract the 'name' symbol
+               (n (car name:value))
+               ; evaluate the 'value' expression
+               (v (cdr name:value))
+               (v (eval (quasiquote (,@v)) eval-ns))]
+          (hash-set! params n v))))
+    params))
+
+(main)
