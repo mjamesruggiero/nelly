@@ -1,6 +1,7 @@
 #lang racket
 
 (require csv-reading
+         db
          racket/match
          racket/file
          plot
@@ -66,12 +67,12 @@
          [conf (load-config file-path)])
     (println conf)))
 
-(define (main)
-  (let ([cli-args
-         (current-command-line-arguments)])
-    (if (> 0 (vector-length cli-args))
-        (println (usage))
-        (runner cli-args))))
+;; (define (main)
+;;   (let ([cli-args
+;;          (current-command-line-arguments)])
+;;     (if (> 0 (vector-length cli-args))
+;;         (println (usage))
+;;         (runner cli-args))))
 
 (define (load-config config-path)
   (let [(eval-ns  (make-base-namespace))
@@ -86,4 +87,21 @@
           (hash-set! params n v))))
     params))
 
-(main)
+(define db-conf
+  (load-config "./conf.rkt"))
+
+(define conn
+        (mysql-connect #:server (hash-ref db-conf 'server )
+                       #:port 3306
+                       #:database (hash-ref db-conf 'database)
+                       #:user (hash-ref db-conf 'username)
+                       #:password (hash-ref db-conf 'password)))
+
+(define (read-query path)
+  (file->string path))
+
+(define query
+  (read-query
+   (hash-ref db-conf 'query-file)))
+
+(query-value conn query)
