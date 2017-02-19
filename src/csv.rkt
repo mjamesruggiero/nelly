@@ -52,4 +52,3 @@
                        #:label label
                        #:color 2 #:line-color 2)
    #:title title))
-
