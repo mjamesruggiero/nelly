@@ -42,6 +42,14 @@
       [(list req cookies matched rate)
        (browser-stat browser req cookies matched rate)])))
 
+(struct chart-point
+  (label value) #:transparent)
+
+(define (row->chart-point row label-index value-index)
+  (let ([l (list-ref row label-index)]
+        [v (list-ref row value-index)])
+    (chart-point l v)))
+
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;     charts
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
