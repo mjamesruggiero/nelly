@@ -45,10 +45,15 @@
 (struct chart-point
   (label value) #:transparent)
 
-(define (row->chart-point row label-index value-index)
+(define (row->point row label-index value-index)
   (let ([l (list-ref row label-index)]
         [v (list-ref row value-index)])
     (chart-point l v)))
+
+(define (csv->points csv label-column value-column)
+  (let ([without-header (cdr (rows csv))])
+    (for/list ([r without-header])
+      (row->point r label-column value-column))))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;     charts

@@ -1,0 +1,4 @@
+browser,total requests,cookies,dsp-matched,coverage rate
+Chrome,1000,50,10,0.2
+Safari,1000,50,10,0.2
+Firefox,1000,50,10,0.2
