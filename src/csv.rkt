@@ -6,6 +6,14 @@
          plot
          plot/no-gui)
 
+(provide browser-stat
+         chart-point
+         csv->points
+         rows
+         row->browser-stat
+         row->point)
+
+
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;     csvs
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,7 +58,7 @@
         [v (list-ref row value-index)])
     (chart-point l v)))
 
-(define (csv->points csv label-column value-column)
+(define (csv->points label-column value-column csv)
   (let ([without-header (cdr (rows csv))])
     (for/list ([r without-header])
       (row->point r label-column value-column))))

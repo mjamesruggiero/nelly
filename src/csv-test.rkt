@@ -2,6 +2,7 @@
 
 (require rackunit
          racket/list
+         racket/function
          rackunit/text-ui
          "csv.rkt")
 
@@ -26,11 +27,11 @@
        (check-equal? (row->point test-row 0 4) expected-point)))
 
    (test-case
-       "CSV can read rows into chart points"
+       "Can read rows into chart points"
      (let* ([expected-point (chart-point "Firefox" "0.2")]
             [label-col 0]
             [value-col 4]
-            [points (csv->points test-csv label-col value-col)])
+            [points (csv->points label-col value-col test-csv)])
        (check-equal? (last points) expected-point)))))
 
 (run-tests csv-tests)
