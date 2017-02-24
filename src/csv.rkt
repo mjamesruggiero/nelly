@@ -6,11 +6,9 @@
          plot
          plot/no-gui)
 
-(provide browser-stat
-         chart-point
+(provide chart-point
          csv->points
          rows
-         row->browser-stat
          row->point)
 
 
@@ -30,25 +28,6 @@
 (define (rows csv-filepath)
   (csv->list (csv-reader
               (open-input-file csv-filepath))))
-
-(define (print-rows rows)
-  (let ([skpping-header (cdr rows)])
-    (for ([r skpping-header])
-      (println (row->browser-stat r)))))
-
-(struct browser-stat
-  (browser
-   total-requests
-   cookies
-   dsp-matched
-   coverage-rate) #:transparent)
-
-(define (row->browser-stat row)
-  (let* ([browser (car row)]
-         [nums (map string->number (cdr row))])
-    (match nums
-      [(list req cookies matched rate)
-       (browser-stat browser req cookies matched rate)])))
 
 (struct chart-point
   (label value) #:transparent)

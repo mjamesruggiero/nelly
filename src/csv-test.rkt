@@ -17,11 +17,6 @@
    "Tests for csv.rkt"
 
    (test-case
-       "Browser stat can be produced from row"
-     (let ([expected-stat (browser-stat "Safari" 500 25 10 0.6)])
-       (check-equal? (row->browser-stat test-row) expected-stat)))
-
-   (test-case
        "Chart point can be generated from CSV row"
      (let ([expected-point (chart-point "Safari" "0.6")])
        (check-equal? (row->point test-row 0 4) expected-point)))
