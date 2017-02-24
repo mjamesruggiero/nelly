@@ -34,7 +34,7 @@
 
 (define (row->point row label-index value-index)
   (let ([l (list-ref row label-index)]
-        [v (list-ref row value-index)])
+        [v (string->number (list-ref row value-index))])
     (chart-point l v)))
 
 (define (csv->points label-column value-column csv)

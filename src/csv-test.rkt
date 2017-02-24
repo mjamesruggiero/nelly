@@ -18,12 +18,12 @@
 
    (test-case
        "Chart point can be generated from CSV row"
-     (let ([expected-point (chart-point "Safari" "0.6")])
+     (let ([expected-point (chart-point "Safari" 0.6)])
        (check-equal? (row->point test-row 0 4) expected-point)))
 
    (test-case
        "Can read rows into chart points"
-     (let* ([expected-point (chart-point "Firefox" "0.2")]
+     (let* ([expected-point (chart-point "Firefox" 0.2)]
             [label-col 0]
             [value-col 4]
             [points (csv->points label-col value-col test-csv)])
