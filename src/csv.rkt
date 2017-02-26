@@ -11,7 +11,6 @@
          rows
          row->point)
 
-
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;     csvs
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,13 +41,6 @@
     (for/list ([r without-header])
       (row->point r label-column value-column))))
 
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;;     charts
-;;~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-(define (time-series-bars list label title)
-  (plot
-   (discrete-histogram list
-                       #:label label
-                       #:color 2 #:line-color 2)
-   #:title title))
+(define (points->vec points)
+  (for/list ([p points])
+    (vector (chart-point-label p) (chart-point-value p))))
