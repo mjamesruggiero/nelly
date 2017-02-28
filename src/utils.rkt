@@ -2,7 +2,8 @@
 
 (require racket/file)
 
-(provide load-config)
+(provide load-config
+         matches-regex?)
 
 (define (load-config config-path)
   (let [(eval-ns  (make-base-namespace))
@@ -16,3 +17,6 @@
                (v (eval (quasiquote (,@v)) eval-ns))]
           (hash-set! params n v))))
     params))
+
+(define (matches-regex? rx elem)
+  (regexp-match? (regexp rx) (string-downcase elem)))
