@@ -2,14 +2,21 @@
 
 (require racket/string
          "csv.rkt"
-         "plot.rkt")
+         "plot.rkt"
+         "utils.rkt")
 
 (define (usage)
   "amazon.rkt <CSV-FILEPATH>")
 
+(define (fix-header hdr)
+  (map
+   (lambda (s)
+     (kill-unwanted-strings s))
+   hdr))
+
 (define (amazon-rows filepath)
   (let* ([rws (rows filepath)]
-         [header (get-repaired-header (car rws))])
+         [header (fix-header (car rws))])
     (printf (format "Header is ~a\n" header))))
 
 (define (runner args)
