@@ -3,6 +3,7 @@ CSV_FILES=$(wildcard /tmp/*.csv)
 
 test:
 	@raco test src/csv-test.rkt
+	@raco test src/utils-test.rkt
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile

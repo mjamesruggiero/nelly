@@ -3,7 +3,8 @@
 (require racket/file)
 
 (provide load-config
-         matches-regex?)
+         matches-regex?
+         kill-unwanted-strings)
 
 (define (load-config config-path)
   (let [(eval-ns  (make-base-namespace))
@@ -20,3 +21,9 @@
 
 (define (matches-regex? rx elem)
   (regexp-match? (regexp rx) (string-downcase elem)))
+
+;; remove parens and replace spaces with dashes
+(define (kill-unwanted-strings elem)
+  (let ([no-spaces
+         (regexp-replace* #px"[[:space:]]" elem "-")])
+    (regexp-replace* #rx"[\\(\\)]" no-spaces "")))
