@@ -64,13 +64,14 @@
 (define (story-node->story node users)
     (story
      (hash-ref node 'name)
-     (hash-ref node 'owned_by_id)
+     (hash-ref node 'owned_by_id "n/a")
      (hash-ref node 'kind)
      (hash-ref node 'current_state)
-     (hash-ref users (hash-ref node 'owned_by_id))))
+     (hash-ref users (hash-ref node 'owned_by_id "n/a") "n/a")))
 
 (define (extract-stories iteration memberships)
-  (let ([users (extract-users (string->jsexpr  memberships))])
+  (let ([users
+         (extract-users (string->jsexpr  memberships))])
     (map (λ [s]
            (story-node->story s users))
          (iteration-stories iteration))))
