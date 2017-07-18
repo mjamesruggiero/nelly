@@ -12,4 +12,3 @@ list:
 clean:
 		@rm -f $(JSON_FILES)
 		@rm -f $(CSV_FILES)
-		@rm -f $(CHART_ASSETS)
