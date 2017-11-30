@@ -1,5 +1,6 @@
 #lang racket
 
+(require 2htdp/image 2htdp/universe)
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;;      orc world
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,7 +85,7 @@
 (define TARGET (circle (- (/ w 2) 2) 'outline 'blue))
 
 (define ORC-IMAGE (overlay ORC FRAME))
-(define HYDRA-IMAGE (overly HYDRA FRAME))
+(define HYDRA-IMAGE (overlay HYDRA FRAME))
 (define SLIME-IMAGE (overlay SLIME FRAME))
 (define BRIGAND-IMAGE (overlay BRIGAND FRAME))
 
@@ -129,12 +130,17 @@
     [(key=? "f" k) (flail w)]
     [(key=? "right" k) (move-target w +1)]
     [(key=? "left" k) (move-target w -1)]
-    [(key=? "down" k) (move-targe w (+ PER-ROW))]
-    [(key=? "up" k) (move-targe w (- PER-ROW))]
+    [(key=? "down" k) (move-target w (+ PER-ROW))]
+    [(key=? "up" k) (move-target w (- PER-ROW))]
     [(key=? "e" k) (end-turn w)]
     [else w])
   (give-monster-turn-if-attack#=0 w)
   w)
+
+(define (initialize-orc-world)
+  (define player0 (initialize-player))
+  (define lom0 (initialize-monsters))
+  (orc-world player0 lom0 (random-number-of-attacks player0) 0))
 
 (define (render-orc-battle w)
   (render-orc-world w (orc-world-target w) (instructions w)))
@@ -142,7 +148,7 @@
 (define (end-of-orc-battle? w)
   (or (win? w) (lose? w)))
 
-(define (render-the end w)
+(define (render-the-end w)
   (render-orc-world w #f (message (if (lose? w) LOSE WIN))))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -189,7 +195,7 @@
 ;; reduces targeted monster's health
 (define (stab w)
   (decrease-attack# w)
-  (define (target (current-target w)))
+  (define target (current-target w))
   (define damage
     (random-quotient (player-strength (orc-world-player w))
                      STAB-DAMAGE))
@@ -201,11 +207,12 @@
 (define (flail w)
   (decrease-attack# w)
   (define target (current-target w))
+  (define alive (filter monster-alive? (orc-world-lom w)))
   (define pick#
     (min
      (random-quotient (player-strength (orc-world-player w))
                       FLAIL-DAMAGE)
-     (length-alive)))
+     (length alive)))
   (define getem (cons target (take alive pick#)))
   (for-each (lambda (m) (damage-monster m 1)) getem))
 
@@ -213,7 +220,7 @@
 (define (decrease-attack# w)
   (set-orc-world-attack#! w (sub1 (orc-world-attack# w))))
 
-(define (damange-monster m delta)
+(define (damage-monster m delta)
   (set-monster-health! m (interval- (monster-health m) delta)))
 
 (define (current-target w)
@@ -300,7 +307,7 @@
   (beside bar H-SPACER (text label HEALTH-SIZE color)))
 
 (define (message str)
-  (text str MESSAGES-SIZE MESSAGE-COLOR))
+  (text str MESSAGE-SIZE MESSAGE-COLOR))
 
 (define (instructions w)
   (define na (number->string (orc-world-attack# w)))
@@ -329,3 +336,44 @@
     [(empty? lom) empty-image]
     [else (define row-image (apply beside (take lom PER-ROW)))
           (above row-image (arrange (drop lom PER-ROW)))]))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       the end?
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (win? w)
+  (all-dead? (orc-world-lom w)))
+
+(define (lose? w)
+  (player-dead? (orc-world-player w)))
+
+(define (player-dead? p)
+  (or (= (player-health p) 0)
+      (= (player-agility p) 0)
+      (= (player-strength p) 0)))
+
+(define (all-dead? lom)
+  (not (ormap monster-alive? lom)))
+
+(define (monster-alive? m)
+  (> (monster-health m) 0))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       aux
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(define (random-quotient x y)
+  (define div (quotient x y))
+  (if (> 0 div) 0 (random + (add1 div))))
+
+(define (random+ n)
+  (add1 (random n)))
+
+(define (random- n)
+  (- (add1 (random n))))
+
+(define (interval- n m (max-value 100))
+  (min (max 0 (-n m) max-value)))
+
+(define (interval+ n m (max-value 100))
+  (interval- n (- m) max-value))
