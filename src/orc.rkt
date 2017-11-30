@@ -70,10 +70,10 @@
 (define HEALTH-BAR-WIDTH 50)
 
 ;; constants for graph frames
-(define ORC (bitmap "/graphics/orc.png"))
-(define HYDRA (bitmap "/graphics/hydra.png"))
-(define SLIME (bitmap "/graphics/slime.bmp"))
-(define BRIGAND (bitmap "/graphics/brigand.bmp"))
+(define ORC (bitmap "graphics/orc.png"))
+(define HYDRA (bitmap "graphics/hydra.png"))
+(define SLIME (bitmap "graphics/slime.bmp"))
+(define BRIGAND (bitmap "graphics/brigand.bmp"))
 
 (define PIC-LIST (list ORC HYDRA SLIME BRIGAND))
 (define w (apply max (map image-width PIC-LIST)))
@@ -81,7 +81,7 @@
 
 ;; images
 (define PLAYER-IMAGE (bitmap "graphics/player.bmp"))
-(define FRAME (rectangle (w h 'outline 'white)))
+(define FRAME (rectangle w h 'outline 'white))
 (define TARGET (circle (- (/ w 2) 2) 'outline 'blue))
 
 (define ORC-IMAGE (overlay ORC FRAME))
@@ -329,7 +329,8 @@
       (if (= health 0)
           (overlay DEAD-TEXT (status-bar 0 1 'white ""))
           (status-bar health MONSTER-HEALTH0 MONSTER-COLOR "")))
-    (above health-bar image)))
+    (above health-bar image))
+  (arrange (map render-one-monster lom)))
 
 (define (arrange lom)
   (cond
@@ -373,7 +374,7 @@
   (- (add1 (random n))))
 
 (define (interval- n m (max-value 100))
-  (min (max 0 (-n m) max-value)))
+  (min (max 0 (- n m) max-value)))
 
 (define (interval+ n m (max-value 100))
   (interval- n (- m) max-value))
