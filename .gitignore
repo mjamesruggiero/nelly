@@ -1,2 +1,3 @@
 *.fasl
 conf.rkt
+.DS_Store
