@@ -365,7 +365,7 @@
 
 (define (random-quotient x y)
   (define div (quotient x y))
-  (if (> 0 div) 0 (random + (add1 div))))
+  (if (> 0 div) 0 (random+ (add1 div))))
 
 (define (random+ n)
   (add1 (random n)))
@@ -378,3 +378,54 @@
 
 (define (interval+ n m (max-value 100))
   (interval- n (- m) max-value))
+
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;;       tests
+;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(module+ test
+  (require rackunit rackunit/text-ui)
+
+  ;; test structs
+  (define WORLD (orc-world (initialize-player) empty 0 0))
+  (define WORLD1 (struct-copy orc-world (initialize-orc-world) [attack# 5]))
+  (define (WORLD2) (struct-copy orc-world (initialize-orc-world) [attack# 0]))
+
+  ;; random worlds
+  (define AN-ORC (orc 'image 0 5))
+  (define A-SLIME (slime 'image 1 6))
+  (define A-HYDRA (hydra 'image 2))
+  (define A-BRIGAND (brigand 'image 3))
+
+  ;; testing move-target
+  (check-equal? (let ([w (orc-world 'dummy 'dummy 'dummy 0)])
+                  (move-target w +1)
+                  w)
+                (orc-world 'dummy 'dummy 'dummy 1))
+
+  (check-equal? (let ([w (orc-world 'dummy 'dummy 'dummy 0)])
+                  (move-target w -1)
+                  w)
+                (orc-world 'dummy 'dummy 'dummy (- MONSTER# 1)))
+
+  (check-equal? (let ([w (orc-world 'dummy 'dummy 'dummy 0)])
+                  (move-target w (- PER-ROW))
+                  w)
+                (orc-world 'dummy 'dummy 'dummy (- MONSTER# PER-ROW)))
+
+  (check-equal? (let ([w (orc-world 'dummy 'dummy 'dummy 1)])
+                  (move-target w (+ PER-ROW))
+                  w)
+                (orc-world 'dummy 'dummy 'dummy (+ PER-ROW 1)))
+
+  (check-equal? (begin
+                  (move-target WORLD1 0)
+                  WORLD1)
+                WORLD1)
+
+  (check-equal? (let ()
+                  (define w (struct-copy orc-world WORLD1))
+                  (move-target w 4)
+                  w)
+                (struct-copy orc-world WORLD1 [target (+ 4 (orc-world-target WORLD1))]))
+
+  "all tests run")
