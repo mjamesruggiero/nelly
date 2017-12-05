@@ -374,7 +374,7 @@
   (- (add1 (random n))))
 
 (define (interval- n m (max-value 100))
-  (min (max 0 (- n m) max-value)))
+  (min (max 0 (- n m)) max-value))
 
 (define (interval+ n m (max-value 100))
   (interval- n (- m) max-value))
@@ -427,5 +427,14 @@
                   (move-target w 4)
                   w)
                 (struct-copy orc-world WORLD1 [target (+ 4 (orc-world-target WORLD1))]))
+
+  (check-equal? (current-target WORLD1)
+                (first (orc-world-lom WORLD1)))
+
+  ;; testing player manipulation
+  (check-equal? (let ([p (player 1 0 0)])
+                  (player-health+ p 5)
+                  p)
+                (player 6 0 0))
 
   "all tests run")
