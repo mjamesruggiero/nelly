@@ -437,4 +437,9 @@
                   p)
                 (player 6 0 0))
 
+  (check-equal? (let ([p (player 0 1 0)])
+                  (player-agility+ p 5)
+                  p)
+                (player 0 6 0))
+
   "all tests run")
